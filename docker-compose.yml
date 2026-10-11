@@ -1,0 +1,69 @@
+services:
+  master-service:
+    build:
+      context: ./bbhealthapp-backend/bbhealthapp-api-master
+      dockerfile: Dockerfile
+    container_name: bbhealthapp-master-service
+    ports:
+      - "8081:8081"
+    volumes:
+      - master-uploads:/app/useruploads
+    networks:
+      - bbhealthapp-network
+    restart: unless-stopped
+
+  register-service:
+    build:
+      context: ./bbhealthapp-backend/bbhealthapp-api-register
+      dockerfile: Dockerfile
+    container_name: bbhealthapp-register-service
+    ports:
+      - "8082:8082"
+    environment:
+      - MASTER_SVC_HOST=master-service
+      - MASTER_SVC_PORT=8081
+    depends_on:
+      - master-service
+    networks:
+      - bbhealthapp-network
+    restart: unless-stopped
+
+  document-service:
+    build:
+      context: ./bbhealthapp-backend/bbhealthapp-api-document
+      dockerfile: Dockerfile
+    container_name: bbhealthapp-document-service
+    ports:
+      - "8083:8083"
+    environment:
+      - MASTER_SVC_HOST=master-service
+      - MASTER_SVC_PORT=8081
+    depends_on:
+      - master-service
+    networks:
+      - bbhealthapp-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./bbhealthapp-frontend
+      dockerfile: Dockerfile
+    container_name: bbhealthapp-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - master-service
+      - register-service
+      - document-service
+    networks:
+      - bbhealthapp-network
+    restart: unless-stopped
+
+volumes:
+  master-uploads:
+    name: bbhealthapp_master_uploads
+
+networks:
+  bbhealthapp-network:
+    name: bbhealthapp_net
+    driver: bridge

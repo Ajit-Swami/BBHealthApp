@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: register-service
+  namespace: bbhealthapp
+  labels:
+    app: register-service
+    app.kubernetes.io/name: register-service
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: bbhealthapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: register-service
+  template:
+    metadata:
+      labels:
+        app: register-service
+        app.kubernetes.io/name: register-service
+        app.kubernetes.io/component: backend
+        app.kubernetes.io/part-of: bbhealthapp
+    spec:
+      containers:
+        - name: register-service
+          image: bbhealthapp-register-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8082
+              name: http
+          env:
+            - name: MASTER_SVC_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: bbhealthapp-config
+                  key: MASTER_SVC_HOST
+            - name: MASTER_SVC_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: bbhealthapp-config
+                  key: MASTER_SVC_PORT
+            - name: token.secret
+              valueFrom:
+                secretKeyRef:
+                  name: bbhealthapp-secret
+                  key: TOKEN_SECRET
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          readinessProbe:
+            tcpSocket:
+              port: 8082
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            tcpSocket:
+              port: 8082
+            initialDelaySeconds: 45
+            periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: register-service
+  namespace: bbhealthapp
+  labels:
+    app: register-service
+    app.kubernetes.io/name: register-service
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: bbhealthapp
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 8082
+      targetPort: 8082
+      protocol: TCP
+      name: http
+  selector:
+    app: register-service

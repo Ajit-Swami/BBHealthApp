@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: master-uploads-pvc
+  namespace: bbhealthapp
+  labels:
+    app.kubernetes.io/name: master-service
+    app.kubernetes.io/part-of: bbhealthapp
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: document-uploads-pvc
+  namespace: bbhealthapp
+  labels:
+    app.kubernetes.io/name: document-service
+    app.kubernetes.io/part-of: bbhealthapp
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi

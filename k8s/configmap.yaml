@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bbhealthapp-config
+  namespace: bbhealthapp
+  labels:
+    app.kubernetes.io/name: bbhealthapp
+    app.kubernetes.io/part-of: bbhealthapp
+data:
+  SPRING_PROFILES_ACTIVE: "dev"
+  MASTER_SVC_HOST: "master-service"
+  MASTER_SVC_PORT: "8081"
+  REGISTER_SVC_PORT: "8082"
+  DOCUMENT_SVC_PORT: "8083"
+  FILE_UPLOAD_DIR: "useruploads"

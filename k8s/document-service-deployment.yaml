@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: document-service
+  namespace: bbhealthapp
+  labels:
+    app: document-service
+    app.kubernetes.io/name: document-service
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: bbhealthapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: document-service
+  template:
+    metadata:
+      labels:
+        app: document-service
+        app.kubernetes.io/name: document-service
+        app.kubernetes.io/component: backend
+        app.kubernetes.io/part-of: bbhealthapp
+    spec:
+      containers:
+        - name: document-service
+          image: bbhealthapp-document-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8083
+              name: http
+          env:
+            - name: MASTER_SVC_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: bbhealthapp-config
+                  key: MASTER_SVC_HOST
+            - name: MASTER_SVC_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: bbhealthapp-config
+                  key: MASTER_SVC_PORT
+            - name: token.secret
+              valueFrom:
+                secretKeyRef:
+                  name: bbhealthapp-secret
+                  key: TOKEN_SECRET
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          volumeMounts:
+            - name: document-uploads
+              mountPath: /app/useruploads
+          readinessProbe:
+            tcpSocket:
+              port: 8083
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            tcpSocket:
+              port: 8083
+            initialDelaySeconds: 45
+            periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 3
+      volumes:
+        - name: document-uploads
+          persistentVolumeClaim:
+            claimName: document-uploads-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: document-service
+  namespace: bbhealthapp
+  labels:
+    app: document-service
+    app.kubernetes.io/name: document-service
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: bbhealthapp
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 8083
+      targetPort: 8083
+      protocol: TCP
+      name: http
+  selector:
+    app: document-service
