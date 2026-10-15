@@ -24,11 +24,16 @@ spec:
       containers:
         - name: document-service
           image: bbhealthapp-document-service:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Never
           ports:
             - containerPort: 8083
               name: http
           env:
+            - name: SPRING_PROFILES_ACTIVE
+              valueFrom:
+                configMapKeyRef:
+                  name: bbhealthapp-config
+                  key: SPRING_PROFILES_ACTIVE
             - name: MASTER_SVC_HOST
               valueFrom:
                 configMapKeyRef:
@@ -84,7 +89,7 @@ metadata:
     app.kubernetes.io/component: backend
     app.kubernetes.io/part-of: bbhealthapp
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
     - port: 8083
       targetPort: 8083

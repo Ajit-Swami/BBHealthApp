@@ -63,29 +63,25 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                echo "Deploying to MicroK8s with LoadBalancer..."
+                echo "Deploying to Kubernetes cluster..."
 
-                dir('kubernetes') {
+                dir('k8s') {
                     // Update image references in deployment files
                     sh """
                         sed -i 's|image: .*bbhealthapp-master-service.*|image: ${REGISTRY}/bbhealthapp-master-service:${IMAGE_TAG}|g' master-service-deployment.yaml
                         sed -i 's|image: .*bbhealthapp-register-service.*|image: ${REGISTRY}/bbhealthapp-register-service:${IMAGE_TAG}|g' register-service-deployment.yaml
                         sed -i 's|image: .*bbhealthapp-document-service.*|image: ${REGISTRY}/bbhealthapp-document-service:${IMAGE_TAG}|g' document-service-deployment.yaml
                         sed -i 's|image: .*bbhealthapp-frontend.*|image: ${REGISTRY}/bbhealthapp-frontend:${IMAGE_TAG}|g' frontend-deployment.yaml
+                        sed -i 's|imagePullPolicy: Never|imagePullPolicy: IfNotPresent|g' *.yaml
                     """
 
-                    // Apply base manifests
+                    // Apply base configurations and persistent storage
                     sh 'kubectl apply -f namespace.yaml'
                     sh 'kubectl apply -f configmap.yaml'
                     sh 'kubectl apply -f secret.yaml'
                     sh 'kubectl apply -f pvc.yaml'
 
-                    // Enable MetalLB for LoadBalancer support
-                    sh 'kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.12/config/manifests/metallb-native.yaml'
-                    sh 'sleep 10'
-                    sh 'kubectl apply -f metallb-config.yaml'
-
-                    // Deploy services
+                    // Deploy backend and frontend microservices
                     sh 'kubectl apply -f master-service-deployment.yaml'
                     sh 'kubectl apply -f register-service-deployment.yaml'
                     sh 'kubectl apply -f document-service-deployment.yaml'

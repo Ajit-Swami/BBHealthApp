@@ -24,7 +24,7 @@ spec:
       containers:
         - name: frontend
           image: bbhealthapp-frontend:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Never
           ports:
             - containerPort: 80
               name: http
@@ -58,11 +58,8 @@ metadata:
     app.kubernetes.io/name: frontend
     app.kubernetes.io/component: frontend
     app.kubernetes.io/part-of: bbhealthapp
-  annotations:
-    metallb.universe.tf/address-pool: default
 spec:
   type: LoadBalancer
-  loadBalancerIP: 192.168.1.240  # Configure MetalLB to use this IP
   ports:
     - port: 80
       targetPort: 80

@@ -8,11 +8,9 @@ metadata:
     app.kubernetes.io/part-of: bbhealthapp
   annotations:
     ingress.kubernetes.io/ssl-redirect: "false"
-    traefik.ingress.kubernetes.io/frontend-entry-points: "http"
 spec:
   rules:
-    - host: bbhealthapp.local  # DNS hostname
-      http:
+    - http:
         paths:
           - path: /auth
             pathType: Prefix
