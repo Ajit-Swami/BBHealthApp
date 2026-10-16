@@ -14,7 +14,7 @@ pipeline {
     stages {
         stage('Pull stage') {
             steps {
-                git branch: 'main', credentialsId: 'github-credentials', url: 'https://github.com/Ajit-Swami/BB-HealthApp.git'
+                git branch: 'main', credentialsId: 'github-credentials', url: 'https://github.com/Ajit-Swami/BBHealthApp.git'
             }
         }
 
