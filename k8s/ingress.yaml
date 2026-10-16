@@ -19,7 +19,7 @@ spec:
                 name: master-service
                 port:
                   number: 8081
-          - path: /api/master
+          - path: /users
             pathType: Prefix
             backend:
               service:
@@ -33,6 +33,13 @@ spec:
                 name: register-service
                 port:
                   number: 8082
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: master-service
+                port:
+                  number: 8081
           - path: /documents
             pathType: Prefix
             backend:
