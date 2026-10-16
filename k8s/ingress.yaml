@@ -12,6 +12,27 @@ spec:
   rules:
     - http:
         paths:
+          - path: /auth/register
+            pathType: Prefix
+            backend:
+              service:
+                name: register-service
+                port:
+                  number: 8082
+          - path: /auth/doctor
+            pathType: Prefix
+            backend:
+              service:
+                name: register-service
+                port:
+                  number: 8082
+          - path: /auth/tester
+            pathType: Prefix
+            backend:
+              service:
+                name: register-service
+                port:
+                  number: 8082
           - path: /auth
             pathType: Prefix
             backend:
