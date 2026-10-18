@@ -2,9 +2,11 @@ pipeline {
     agent any
 
     environment {
-        REGISTRY = 'docker.io/ajit189'  
-        NAMESPACE = 'bbhealthapp'
-        IMAGE_TAG = "${env.BUILD_NUMBER}"
+        REGISTRY     = 'docker.io/ajit189'  
+        NAMESPACE    = 'bbhealthapp'
+        IMAGE_TAG    = "${env.BUILD_NUMBER}"
+        AWS_REGION   = 'us-west-2'
+        CLUSTER_NAME = 'bbhealthapp-dev'
     }
 
     options {
@@ -63,16 +65,19 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                echo "Deploying to Kubernetes cluster..."
+                echo "Connecting to EKS cluster..."
+                sh "aws eks update-kubeconfig --region ${AWS_REGION} --name ${CLUSTER_NAME}"
 
+                echo "Deploying to Kubernetes cluster..."
                 dir('k8s') {
-                    // Update image references in deployment files
+                    // Update image references and AWS-compatible storage class
                     sh """
                         sed -i 's|image: .*bbhealthapp-master-service.*|image: ${REGISTRY}/bbhealthapp-master-service:${IMAGE_TAG}|g' master-service-deployment.yaml
                         sed -i 's|image: .*bbhealthapp-register-service.*|image: ${REGISTRY}/bbhealthapp-register-service:${IMAGE_TAG}|g' register-service-deployment.yaml
                         sed -i 's|image: .*bbhealthapp-document-service.*|image: ${REGISTRY}/bbhealthapp-document-service:${IMAGE_TAG}|g' document-service-deployment.yaml
                         sed -i 's|image: .*bbhealthapp-frontend.*|image: ${REGISTRY}/bbhealthapp-frontend:${IMAGE_TAG}|g' frontend-deployment.yaml
                         sed -i 's|imagePullPolicy: Never|imagePullPolicy: IfNotPresent|g' *.yaml
+                        sed -i 's|storageClassName: local-path|storageClassName: gp2|g' pvc.yaml
                     """
 
                     // Apply base configurations and persistent storage
